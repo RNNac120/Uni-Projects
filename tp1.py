@@ -6,7 +6,6 @@
 import re
 from sys import argv
 
-
 token_start = 0
 token_flag = 0
 
@@ -40,6 +39,7 @@ punctuation = {
         "."     : "Period",
         ";"     : "Semicolon"
         }
+
 operators = {
         "="     : "Assign",
         "=="    : "Equal",
@@ -53,6 +53,7 @@ operators = {
         "*"     : "Multiplication",
         "/"     : "Division",
         }
+
 reserved = {
         "fn"        : "Function",
         "main"      : "Main",
@@ -98,4 +99,3 @@ while True:
 print(f"{token_list}")
 
 # Parte 2 -- Analisador sintatico
-
