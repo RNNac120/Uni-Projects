@@ -6,10 +6,17 @@
 import re
 from sys import argv
 
-ws = re.compile(r"[ \t\n]*")
+
+token_start = 0
+token_flag = 0
+
+ws = re.compile(r"[ \n\t]*")
 def ignore_space(string: str, inicial: int):
     foo = ws.match(string, inicial)
-    return inicial + len(foo[0]) 
+    if "\n" in foo[0]:
+        global token_flag
+        token_flag = 0 + len(foo[0]) - 1
+    return len(foo[0]) 
 
 tokens = {"ReservedWords"   : re.compile(r"fn|main|let|int|float|char|if|else|while|print|println|return",), 
           "Identifier"      : re.compile(r"[a-zA-Z][a-zA-Z0-9_]*"),
@@ -19,28 +26,76 @@ tokens = {"ReservedWords"   : re.compile(r"fn|main|let|int|float|char|if|else|wh
           "IntConst"        : re.compile(r"[0-9]([0-9])*"),
           "FloatConst"      : re.compile(r"[0-9]([0-9])*.[0-9]([0-9])*"),
           "FormattedString" : re.compile(r"\"\{\}\""),
-}
+          "Errors"          : re.compile(r"[^a-zA-Z0-9_]"),
+          }
 
-token_start = 0
+punctuation = {
+        "("     : "LParen",
+        ")"     : "RParen",
+        "->"    : "Arrow",
+        ":"     : "Colon",
+        ","     : "Comma",
+        "{"     : "LBrace",
+        "}"     : "RBrace",
+        "."     : "Period",
+        ";"     : "Semicolon"
+        }
+operators = {
+        "="     : "Assign",
+        "=="    : "Equal",
+        "!="    : "NotEqual",
+        ">"     : "GreaterThan",
+        ">="    : "GreaterThanEqual",
+        "<"     : "LessThan",
+        "<="    : "LessThanEqual",
+        "+"     : "Plus",
+        "-"     : "Minus",
+        "*"     : "Multiplication",
+        "/"     : "Division",
+        }
+reserved = {
+        "fn"        : "Function",
+        "main"      : "Main",
+        "let"       : "Let",
+        "int"       : "Int",
+        "float"     : "Float",
+        "char"      : "Char",
+        "if"        : "If",
+        "else"      : "Else",
+        "while"     : "While",
+        "print"     : "Print",
+        "println"   : "Println",
+        "return"    : "Return",
+        }
+
 token_list = []
 with open(argv[1], "r") as f:
     string_source = f.read()
 
 while True:
     for name, token in tokens.items():
-        token_start = ignore_space(string_source, token_start)
+        token_flag = token_flag + ignore_space(string_source, token_start)
+        token_start += ignore_space(string_source, token_start)
         match = token.match(string_source, token_start)
         if not match:
             continue
-        token_list.append([{name: match[0]},token_start, token_start + len(match[0])])
+
         token_start = token_start + len(match[0])
+        token_flag = token_flag + len(match[0])
+        aux = match[0]
+        if name == "Punctuation":
+            aux = punctuation[match[0]]
+        if name == "Operators":
+            aux = operators[match[0]]
+        if name == "ReservedWords":
+            aux = reserved[match[0]]
+        token_list.append([{name: aux}, token_flag, token_flag + len(match[0])])
         break
-    print(f"{token_list}")
 
     if token_start >= len(string_source) - 1:
         break
 
 print(f"{token_list}")
 
-
 # Parte 2 -- Analisador sintatico
+
